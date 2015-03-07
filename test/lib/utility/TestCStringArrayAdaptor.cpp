@@ -1,4 +1,4 @@
-#include "CStringArrayAdaptor.hpp"
+#include "utility/CStringArrayAdaptor.hpp"
 
 #include <gtest/gtest.h>
 

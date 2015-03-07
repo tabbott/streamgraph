@@ -1,4 +1,10 @@
-#include "FdSource.hpp"
+#include "utility/FdSource.hpp"
+#include "utility/FdUtil.hpp"
+
+#include <cstdio>
+
+#include <sys/types.h>
+#include <unistd.h>
 
 FdSource::FdSource(int src_fd)
     : fd_(src_fd)
@@ -17,7 +23,6 @@ FileFdSource::FileFdSource(std::string const& path, int flags, mode_t mode)
 
 int FileFdSource::get_fd() {
     int fd = -1;
-    while ((fd = open(path_.c_str(), flags_, mode_)) == -1 && errno == EINTR)
-        ;
+    SYSCALL_RETRY_VAR(fd, open(path_.c_str(), flags_, mode_));
     return fd;
 }

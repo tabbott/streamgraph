@@ -7,6 +7,7 @@
 
 namespace io {
 
+    inline
     std::string read_file(std::string const& path) {
         boost::iostreams::mapped_file_source src(path);
         return std::string(src.data(), src.size());
