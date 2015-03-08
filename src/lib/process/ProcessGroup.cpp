@@ -2,6 +2,8 @@
 
 #include <boost/format.hpp>
 
+#include <glog/logging.h>
+
 #include <stdexcept>
 
 #include <sys/types.h>
@@ -21,14 +23,17 @@ void ProcessGroup::start() {
         return;
 
     std::size_t n = procs_.size();
+    LOG(INFO) << "Process group starting " << n << " processes.";
     for (std::size_t i = 0; i < n; ++i) {
         procs_[i]->start();
     }
+    LOG(INFO) << "Process group started " << n << " processes.";
 }
 
 bool ProcessGroup::finish() {
     bool rv = true;
     std::size_t n = procs_.size();
+    LOG(INFO) << "Process group waiting for " << n << " processes.";
     for (std::size_t i = 0; i < n; ++i) {
         Process& p = *procs_[i];
         if (p.state() == eRUNNING)
@@ -36,6 +41,8 @@ bool ProcessGroup::finish() {
 
         rv &= p.succeeded();
     }
+    LOG(INFO) << "Process group waited for " << n << " processes. "
+        << "All ok? " << rv << ".";
     return rv;
 }
 

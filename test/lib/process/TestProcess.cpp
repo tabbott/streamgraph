@@ -13,6 +13,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+namespace {
+    typedef std::vector<std::string> VS;
+}
+
 // make sure that even when close on exec is set, we still get our fds
 TEST(Process, remapFd_close_on_exec) {
     auto tmpfile = TempFile::create(TempFile::CLEANUP);
@@ -26,8 +30,7 @@ TEST(Process, remapFd_close_on_exec) {
     SYSCALL_RETRY_VAR(flags, fcntl(out_fd, F_GETFL, 0));
     EXPECT_TRUE(flags & FD_CLOEXEC);
 
-    auto proc = Process::create(std::vector<std::string>{
-        "bash", "-ec", "echo hello 1>&3"});
+    auto proc = Process::create(VS{"bash", "-ec", "echo hello 1>&3"});
 
     proc->fd_map().add_existing_fd(3, out_fd);
 
@@ -38,4 +41,12 @@ TEST(Process, remapFd_close_on_exec) {
 
     auto msg = io::read_file(path);
     EXPECT_EQ("hello\n", msg);
+}
+
+// make sure that even when close on exec is set, we still get our fds
+TEST(Process, exit_failure) {
+    auto proc = Process::create(VS{"bash", "-ec", "exit 7"});
+    ASSERT_GT(proc->start(), 0);
+    EXPECT_FALSE(proc->finish());
+    EXPECT_EQ(7, proc->exit_status());
 }

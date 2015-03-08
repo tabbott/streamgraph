@@ -11,6 +11,8 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 
+#include <stdexcept>
+
 #include <string>
 #include <vector>
 
@@ -34,11 +36,16 @@ public: // types
         friend bool operator==(FdSpec const& x, FdSpec const& y) {
             return x.node_id == y.node_id && x.fd == y.fd;
         }
+
+        friend bool operator!=(FdSpec const& x, FdSpec const& y) {
+            return !(x == y);
+        }
     };
 
 
     typedef boost::unordered_set<FdSpec> FdSpecSet;
-    typedef boost::unordered_map<FdSpec, FdSpecSet> PipeMap;
+    typedef boost::unordered_map<FdSpec, FdSpecSet> OutPipeMap;
+    typedef boost::unordered_map<FdSpec, FdSpec> InPipeMap;
 
 public: // functions
     NodeId add(Process::Ptr const& proc) {
@@ -69,6 +76,7 @@ public: // functions
         using boost::format;
 
         if (id >= nodes_.size()) {
+            LOG(ERROR) << "Request for invalid node id " << id;
             throw std::runtime_error(str(format(
                 "Request for invalid node id %1%"
                 ) % id));
@@ -76,10 +84,25 @@ public: // functions
     }
 
     void connect(NodeId src, int src_fd, NodeId dst, int dst_fd) {
+        using boost::format;
+
         validate_node(src);
         validate_node(dst);
         FdSpec a = {src, src_fd};
         FdSpec b = {dst, dst_fd};
+        std::pair<InPipeMap::iterator, bool> inserted = in_pipes_.insert(std::make_pair(b, a));
+        if (!inserted.second) {
+            if (inserted.first->second != a) {
+                LOG(ERROR) << "Attempted to connect multiple streams to process "
+                    << dst << " fd " << dst_fd << " (" << process(dst)->args_string() << ")";
+                throw std::runtime_error(str(format(
+                    "Attempted to connect multiple streams to target (proc %1% fd %2%)"
+                    ) % dst % dst_fd));
+            }
+            LOG(WARNING) << "Redundant connection of (process "
+                << src << " fd " << src_fd << ") -> (process "
+                << dst << " fd " << dst_fd << ")";
+        }
         pipes_[a].insert(b);
     }
 
@@ -95,7 +118,7 @@ public: // functions
     bool execute() {
         std::vector<FdSpec> broadcasters;
 
-        for (PipeMap::const_iterator iter = pipes_.begin(); iter != pipes_.end(); ++iter) {
+        for (OutPipeMap::const_iterator iter = pipes_.begin(); iter != pipes_.end(); ++iter) {
             FdSpecSet const& destinations = iter->second;
             if (destinations.size() > 1) {
                 broadcasters.push_back(iter->first);
@@ -104,18 +127,19 @@ public: // functions
 
         for (std::size_t i = 0; i < broadcasters.size(); ++i) {
             FdSpec const& src = broadcasters[i];
-            PipeMap::iterator iter = pipes_.find(src);
+            OutPipeMap::iterator iter = pipes_.find(src);
             NodeId tee_id = add(make_fdtee_cmd(3, iter->second.size()));
             FdSpecSet dst_copy = iter->second;
             pipes_.erase(iter);
             connect(src.node_id, src.fd, tee_id, 3);
             int tee_fd = 4;
             for (FdSpecSet::const_iterator dst_iter = dst_copy.begin(); dst_iter != dst_copy.end(); ++dst_iter) {
+                in_pipes_.erase(*dst_iter);
                 connect(tee_id, tee_fd++, dst_iter->node_id, dst_iter->fd);
             }
         }
 
-        for (PipeMap::const_iterator siter = pipes_.begin(); siter != pipes_.end(); ++siter) {
+        for (OutPipeMap::const_iterator siter = pipes_.begin(); siter != pipes_.end(); ++siter) {
             int rwpipe[2];
             create_pipe(rwpipe);
 
@@ -164,7 +188,8 @@ private: // data
     ProcessGroup pgroup_;
 
     std::vector<int> pipe_fds_;
-    PipeMap pipes_;
+    OutPipeMap pipes_;
+    InPipeMap in_pipes_;
 };
 
 inline

@@ -60,6 +60,8 @@ public:
             int old_fd = iter->second->get_fd();
             int new_fd = -1;
             SYSCALL_RETRY_VAR(new_fd, dup(old_fd));
+            PCHECK(new_fd >= 0) << "failed to dup fd " << old_fd;
+
             // FIXME new_fd = -1 && die???
             fd_map[iter->first] = new_fd;
             LOG(INFO) << "temporary dup(" << old_fd << ") -> " << new_fd;
@@ -68,6 +70,8 @@ public:
         for (FdMapType::const_iterator iter = fd_map.begin(); iter != fd_map.end(); ++iter) {
             int status;
             SYSCALL_RETRY_VAR(status, dup2(iter->second, iter->first));
+            PCHECK(status >= 0) << "dup2(" << iter->second << ", " << iter->first
+                << ") failed";
             LOG(INFO) << "final dup2(" << iter->second << ", " <<  iter->first
                 << ") -> " << status;
         }
@@ -93,12 +97,6 @@ FdMapping::FdMapping()
 FdMapping::~FdMapping() {
     delete impl_;
 }
-
-/*
- *void FdMapping::add(int target_fd, FdSourceBase* source) {
- *    impl_->add(target_fd, FdSourceBasePtr(source));
- *}
- */
 
 void FdMapping::add_existing_fd(int target_fd, int source_fd) {
     impl_->add(target_fd, FdSourceBasePtr(new FdSource(source_fd)));
