@@ -13,16 +13,6 @@ ProcessGroup::ProcessGroup()
 {}
 
 void ProcessGroup::add(Process::Ptr const& proc) {
-    /*
-     *if (proc->state() != eNEW) {
-     *    // XXX add process name or args or something here
-     *    // maybe state name too
-     *    throw std::runtime_error(
-     *        "Attempted to add process in a state other than new"
-     *        );
-     *}
-     */
-
     procs_.push_back(proc);
 }
 
