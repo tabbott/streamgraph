@@ -21,8 +21,6 @@ Process::Ptr Process::create(std::vector<std::string> const& args) {
 Process::Process(std::vector<std::string> const& args)
     : pid_(0)
     , state_(eNEW)
-    , status_(0)
-    , rsrc_()
     , args_(args)
 {}
 
@@ -55,6 +53,11 @@ pid_t Process::start() {
     return pid_;
 }
 
+void Process::set_result(ProcessResult const& result) {
+    state_ = eCOMPLETE;
+    result_ = result;
+}
+
 bool Process::finish() {
     if (state() != eRUNNING) {
         throw std::runtime_error(str(format(
@@ -64,11 +67,11 @@ bool Process::finish() {
 
     pid_t caught;
     // FIXME: mask stop/cont
-    while ((caught = wait4(pid_, &status_, 0, &rsrc_)) && errno == EINTR)
+    while ((caught = wait4(pid_, &result_.status, 0, &result_.rsrc)) && errno == EINTR)
         ;
 
     LOG(INFO) << "Reaped process " << caught << " (" << args_string()
-        << "), status: " << status_ << "\n";
+        << "), status: " << result_.status << "\n";
 
     if (caught != pid_)
         return false;
@@ -89,9 +92,9 @@ std::string Process::args_string() const {
 }
 
 int Process::exit_status() const {
-    return WEXITSTATUS(status_);
+    return WEXITSTATUS(result_.status);
 }
 
 int Process::exit_signal() const {
-    return WTERMSIG(status_);
+    return WTERMSIG(result_.status);
 }

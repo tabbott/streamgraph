@@ -1,5 +1,6 @@
 #pragma once
 
+#include "process/ProcessResult.hpp"
 #include "utility/FdMapping.hpp"
 
 #include <boost/noncopyable.hpp>
@@ -29,12 +30,14 @@ public:
 
     pid_t pid() const               { return pid_; }
     ProcessState state() const      { return state_; }
-    int raw_status() const          { return status_; }
-    rusage resource_usage() const   { return rsrc_; }
+    int raw_status() const          { return result_.status; }
+    rusage resource_usage() const   { return result_.rsrc; }
     FdMapping& fd_map()             { return fd_map_; }
 
+    void set_result(ProcessResult const& status);
+
     bool succeeded() const {
-        return state_ == eCOMPLETE && status_ == 0;
+        return state_ == eCOMPLETE && result_.status == 0;
     }
 
     int exit_status() const;
@@ -48,8 +51,7 @@ private:
 private:
     pid_t pid_;
     ProcessState state_;
-    int status_;
-    rusage rsrc_;
+    ProcessResult result_;
     std::vector<std::string> args_;
     FdMapping fd_map_;
 };
