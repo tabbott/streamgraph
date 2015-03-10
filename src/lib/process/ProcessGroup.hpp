@@ -3,6 +3,8 @@
 #include "process/Process.hpp"
 #include "process/ProcessResult.hpp"
 
+#include <boost/unordered_map.hpp>
+
 #include <vector>
 
 class ProcessGroup {
@@ -25,11 +27,10 @@ public:
     }
 
 private:
-    bool runner_execute(int output_pipe);
+    typedef boost::unordered_map<pid_t, std::size_t> PidMap;
 
-private:
     bool started_;
-    pid_t runner_pid_;
     std::vector<Process::Ptr> procs_;
     std::vector<ProcessResult> results_;
+    PidMap pidmap_;
 };
