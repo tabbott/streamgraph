@@ -54,6 +54,18 @@ pid_t Process::start() {
 }
 
 void Process::set_result(ProcessResult const& result) {
+    if (state() != eRUNNING) {
+        throw std::runtime_error(str(format(
+            "Attempted to set result for process that isn't running (pid %1%)"
+            ) % pid()));
+    }
+
+    if (result.pid != pid_) {
+        throw std::runtime_error(str(format(
+            "Attempted to set result for process %1% with values for unlrelated pid %2%"
+            ) % pid() % result.pid));
+    }
+
     state_ = eCOMPLETE;
     result_ = result;
 }
@@ -66,9 +78,7 @@ bool Process::finish() {
     }
 
     pid_t caught;
-    // FIXME: mask stop/cont
-    while ((caught = wait4(pid_, &result_.status, 0, &result_.rsrc)) && errno == EINTR)
-        ;
+    SYSCALL_RETRY_VAR(caught, wait4(pid_, &result_.status, 0, &result_.rsrc));
 
     LOG(INFO) << "Reaped process " << caught << " (" << args_string()
         << "), status: " << result_.status << "\n";

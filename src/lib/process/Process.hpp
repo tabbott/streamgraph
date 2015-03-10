@@ -35,6 +35,9 @@ public:
     FdMapping& fd_map()             { return fd_map_; }
 
     void set_result(ProcessResult const& status);
+    ProcessResult const& result() const {
+        return result_;
+    }
 
     bool succeeded() const {
         return state_ == eCOMPLETE && result_.status == 0;
