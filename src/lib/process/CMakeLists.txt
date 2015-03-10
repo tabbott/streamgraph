@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(LIB_SOURCES
     Process.cpp
+    ProcessGraph.cpp
     ProcessGraph.hpp
     ProcessGroup.cpp
     ProcessGroup.hpp
