@@ -9,5 +9,5 @@ set(SOURCES
 )
 
 add_executable(TestUtility ${SOURCES})
-target_link_libraries(TestUtility utility gtest_main_nolog gtest ${Boost_LIBRARIES} ${GLOG_LIBRARY})
+target_link_libraries(TestUtility utility gtest_main_nolog gtest ${Boost_LIBRARIES} ${GLOG_LIBRARIES})
 add_test(NAME Utility COMMAND TestUtility)

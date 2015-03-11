@@ -10,5 +10,5 @@ set(SOURCES
 )
 
 add_executable(TestProcess ${SOURCES})
-target_link_libraries(TestProcess process utility gtest_main_nolog gtest ${Boost_LIBRARIES} ${GLOG_LIBRARY})
+target_link_libraries(TestProcess process utility gtest_main_nolog gtest ${Boost_LIBRARIES} ${GLOG_LIBRARIES})
 add_test(NAME Process COMMAND TestProcess)
