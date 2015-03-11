@@ -8,6 +8,7 @@
 #include <boost/program_options.hpp>
 
 #include <iostream>
+#include <sstream>
 
 namespace bfs = boost::filesystem;
 namespace po = boost::program_options;
@@ -44,4 +45,15 @@ void RunGraphCommand::exec() {
 
     bool rv = pg.execute();
     std::cerr << "execute ok: " << std::boolalpha << rv << "\n";
+    if (!rv) {
+        auto n = pg.size();
+        std::stringstream ss;
+        ss << "Some commands did not complete successfully:\n\n\tstatus\tcmdline\n";
+        for (ProcessGraph::NodeId i = 0; i < n; ++i) {
+            auto const& p = pg.process(i);
+            ss << "\t" << p->raw_status() << "\t" << p->args_string() << "\n";
+        }
+
+        throw std::runtime_error(ss.str());
+    }
 }
