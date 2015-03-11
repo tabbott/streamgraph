@@ -54,6 +54,9 @@ public: // functions
     Process::Ptr const& process(NodeId id) const;
     void validate_node(NodeId id) const;
     void connect(NodeId src, int src_fd, NodeId dst, int dst_fd);
+    void connect_input_file(std::string const& src, NodeId dst, int dst_fd);
+    void connect_output_file(NodeId src, int src_fd, std::string const& dst,
+        int mode = 0644, bool append = false);
     bool execute();
 
 private:

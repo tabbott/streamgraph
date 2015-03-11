@@ -74,6 +74,26 @@ void ProcessGraph::connect(NodeId src, int src_fd, NodeId dst, int dst_fd) {
     pipes_[a].insert(b);
 }
 
+void ProcessGraph::connect_input_file(std::string const& src, NodeId dst, int dst_fd) {
+    validate_node(dst);
+    process(dst)->fd_map().add_file(dst_fd, src, O_RDONLY, 0644);
+}
+
+void ProcessGraph::connect_output_file(NodeId src, int src_fd, std::string const& dst,
+    int mode /*= 0644*/, bool append /*= false*/)
+{
+    validate_node(src);
+    int flags = O_WRONLY | O_CREAT;
+    if (append) {
+        flags |= O_APPEND;
+    }
+    else {
+        flags |= O_TRUNC;
+    }
+    process(src)->fd_map().add_file(src_fd, dst, flags, mode);
+}
+
+
 void ProcessGraph::create_pipe(int rwpipe[2]) {
     if (pipe(rwpipe)) {
         throw std::runtime_error("failed to open pipe");
