@@ -16,6 +16,10 @@
 #include <string>
 #include <vector>
 
+ProcessGraph::ProcessGraph(std::vector<std::string> fdtee_cmd)
+    : fdtee_cmd_(fdtee_cmd)
+{}
+
 ProcessGraph::NodeId ProcessGraph::add(Process::Ptr const& proc) {
     pgroup_.add(proc);
     nodes_.push_back(proc);
@@ -161,9 +165,8 @@ bool ProcessGraph::execute() {
     return pgroup_.finish();
 }
 
-std::vector<std::string> ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) {
-    std::vector<std::string> args;
-    args.push_back("fdtee");
+std::vector<std::string> ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) const {
+    std::vector<std::string> args = fdtee_cmd_;
     args.push_back(boost::lexical_cast<std::string>(read_fd));
     for (std::size_t i = 1; i <= n_dst; ++i) {
         args.push_back(boost::lexical_cast<std::string>(read_fd + i));

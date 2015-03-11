@@ -47,6 +47,12 @@ public: // types
     typedef boost::unordered_map<FdSpec, FdSpec> InPipeMap;
 
 public: // functions
+    explicit ProcessGraph(std::vector<std::string> fdtee_cmd = {"streamgraph", "fdtee"});
+
+    void set_fdtee_cmd(std::vector<std::string> cmd) {
+        fdtee_cmd_.swap(cmd);
+    }
+
     NodeId add(Process::Ptr const& proc);
     NodeId add(std::vector<std::string> const& args);
     NodeId size() const;
@@ -61,7 +67,7 @@ public: // functions
 
 private:
     void create_pipe(int rwpipe[2]);
-    static std::vector<std::string> make_fdtee_cmd(int read_fd, std::size_t n_dst);
+    std::vector<std::string> make_fdtee_cmd(int read_fd, std::size_t n_dst) const;
 
 private: // data
     NodeList nodes_;
@@ -70,6 +76,8 @@ private: // data
     std::vector<int> pipe_fds_;
     OutPipeMap pipes_;
     InPipeMap in_pipes_;
+
+    std::vector<std::string> fdtee_cmd_;
 };
 
 inline
