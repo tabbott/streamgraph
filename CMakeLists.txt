@@ -11,6 +11,10 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 find_package(Boost 1.40 REQUIRED COMPONENTS iostreams program_options system filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_package(Threads REQUIRED)
+link_libraries(${CMAKE_THREAD_LIBS_INIT})
+
+
 add_custom_target(deps ALL)
 
 set(UNWIND_SRC ${CMAKE_BINARY_DIR}/vendor/unwind-src)
