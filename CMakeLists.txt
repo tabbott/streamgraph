@@ -14,8 +14,7 @@ enable_testing(true)
 add_subdirectory(vendor/gtest-1.7.0)
 include_directories(vendor/gtest-1.7.0/include)
 
-add_subdirectory(vendor/tinyxml2-2.2.0)
-include_directories(vendor/tinyxml2-2.2.0)
+include_directories(vendor/rapidxml-1.13)
 
 include_directories(src/lib)
 
