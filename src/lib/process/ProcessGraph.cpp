@@ -171,3 +171,7 @@ Process::Ptr ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) const 
     }
     return Process::create(str(format("__fdtee_%1%") % nodes_.size()), args);
 }
+
+ProcessGraph::NodeList ProcessGraph::processes() const {
+    return nodes_;
+}

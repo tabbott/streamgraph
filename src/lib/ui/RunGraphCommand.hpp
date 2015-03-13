@@ -14,6 +14,6 @@ public:
     void exec();
 
 private:
-    std::string log_dir_;
-    std::string xml_path_;
+    std::string input_xml_path_;
+    std::string output_xml_path_;
 };

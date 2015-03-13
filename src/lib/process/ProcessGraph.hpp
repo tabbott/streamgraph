@@ -65,6 +65,8 @@ public: // functions
         int mode = 0644, bool append = false);
     bool execute();
 
+    NodeList processes() const;
+
 private:
     void create_pipe(int rwpipe[2]);
     Process::Ptr make_fdtee_cmd(int read_fd, std::size_t n_dst) const;
