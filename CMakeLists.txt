@@ -24,7 +24,7 @@ ExternalProject_Add(
     URL ${CMAKE_CURRENT_SOURCE_DIR}/vendor/libunwind-1.1
     SOURCE_DIR ${UNWIND_SRC}
     BINARY_DIR ${UNWIND_SRC}
-    CONFIGURE_COMMAND ./configure --prefix=${UNWIND_ROOT}
+    CONFIGURE_COMMAND bash -ec "CXXFLAGS='${CMAKE_CXX_FLAGS}' ./configure --prefix=${UNWIND_ROOT}"
     BUILD_COMMAND make
     INSTALL_COMMAND make install
 )
@@ -33,12 +33,28 @@ include_directories(${UNWIND_ROOT}/include)
 set(UNWIND_LIBRARIES ${UNWIND_ROOT}/lib/libunwind.a lzma)
 
 
+set(GFLAGS_SRC ${CMAKE_BINARY_DIR}/vendor/gflags-src)
+set(GFLAGS_ROOT ${CMAKE_BINARY_DIR}/vendor/gflags)
+ExternalProject_Add(
+    gflags
+    URL ${CMAKE_CURRENT_SOURCE_DIR}/vendor/gflags-2.0
+    SOURCE_DIR ${GFLAGS_SRC}
+    BINARY_DIR ${GFLAGS_SRC}
+    CONFIGURE_COMMAND bash -ec "CXXFLAGS='${CMAKE_CXX_FLAGS}' ./configure --prefix=${GFLAGS_ROOT}"
+    BUILD_COMMAND make
+    INSTALL_COMMAND make install
+)
+add_dependencies(deps gflags)
+include_directories(${GFLAGS_ROOT}/include)
+set(GFLAGS_LIBRARIES ${GFLAGS_ROOT}/lib/libgflags.a)
+
+
 set(GLOG_SRC ${CMAKE_BINARY_DIR}/vendor/glog-src)
 set(GLOG_ROOT ${CMAKE_BINARY_DIR}/vendor/glog)
 ExternalProject_Add(
     glog
     URL ${CMAKE_CURRENT_SOURCE_DIR}/vendor/glog-0.3.3
-    DEPENDS unwind
+    DEPENDS unwind gflags
     SOURCE_DIR ${GLOG_SRC}
     BINARY_DIR ${GLOG_SRC}
     CONFIGURE_COMMAND ./configure --prefix=${GLOG_ROOT}
@@ -47,7 +63,7 @@ ExternalProject_Add(
 )
 add_dependencies(deps glog)
 include_directories(${GLOG_ROOT}/include)
-set(GLOG_LIBRARIES ${GLOG_ROOT}/lib/libglog.a ${UNWIND_LIBRARIES})
+set(GLOG_LIBRARIES ${GLOG_ROOT}/lib/libglog.a ${GFLAGS_LIBRARIES} ${UNWIND_LIBRARIES})
 
 
 
