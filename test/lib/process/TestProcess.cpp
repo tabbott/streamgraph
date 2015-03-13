@@ -1,7 +1,7 @@
 #include "process/Process.hpp"
 #include "process/ProcessResult.hpp"
 #include "utility/io.hpp"
-#include "utility/FdUtil.hpp"
+#include "utility/Syscall.hpp"
 #include "utility/TempFile.hpp"
 
 #include <gtest/gtest.h>
