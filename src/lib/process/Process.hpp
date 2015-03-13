@@ -23,7 +23,7 @@ class Process : public boost::noncopyable {
 public:
     typedef boost::shared_ptr<Process> Ptr;
 
-    static Ptr create(std::vector<std::string> const& args);
+    static Ptr create(std::string const& name, std::vector<std::string> const& args);
 
     pid_t start();
     bool finish();
@@ -33,6 +33,7 @@ public:
     int raw_status() const          { return result_.status; }
     rusage resource_usage() const   { return result_.rsrc; }
     FdMapping& fd_map()             { return fd_map_; }
+    std::string const& name() const { return name_; }
 
     void set_result(ProcessResult const& status);
     ProcessResult const& result() const {
@@ -48,13 +49,16 @@ public:
 
     std::string args_string() const;
 
-private:
-    Process(std::vector<std::string> const& args);
 
 private:
+    Process(std::string const& name, std::vector<std::string> const& args);
+
+private:
+    std::string name_;
+    std::vector<std::string> args_;
+
     pid_t pid_;
     ProcessState state_;
     ProcessResult result_;
-    std::vector<std::string> args_;
     FdMapping fd_map_;
 };

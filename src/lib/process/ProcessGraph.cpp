@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+using boost::format;
+
 ProcessGraph::ProcessGraph(std::vector<std::string> fdtee_cmd)
     : fdtee_cmd_(fdtee_cmd)
 {}
@@ -26,8 +28,8 @@ ProcessGraph::NodeId ProcessGraph::add(Process::Ptr const& proc) {
     return nodes_.size() - 1;
 }
 
-ProcessGraph::NodeId ProcessGraph::add(std::vector<std::string> const& args) {
-    return add(Process::create(args));
+ProcessGraph::NodeId ProcessGraph::add(std::string const& name, std::vector<std::string> const& args) {
+    return add(Process::create(name, args));
 }
 
 ProcessGraph::NodeId ProcessGraph::size() const {
@@ -45,8 +47,6 @@ Process::Ptr const& ProcessGraph::process(NodeId id) const {
 }
 
 void ProcessGraph::validate_node(NodeId id) const {
-    using boost::format;
-
     if (id >= nodes_.size()) {
         LOG(ERROR) << "Request for invalid node id " << id;
         throw std::runtime_error(str(format(
@@ -56,8 +56,6 @@ void ProcessGraph::validate_node(NodeId id) const {
 }
 
 void ProcessGraph::connect(NodeId src, int src_fd, NodeId dst, int dst_fd) {
-    using boost::format;
-
     validate_node(src);
     validate_node(dst);
     FdSpec a = {src, src_fd};
@@ -165,11 +163,11 @@ bool ProcessGraph::execute() {
     return pgroup_.finish();
 }
 
-std::vector<std::string> ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) const {
+Process::Ptr ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) const {
     std::vector<std::string> args = fdtee_cmd_;
     args.push_back(boost::lexical_cast<std::string>(read_fd));
     for (std::size_t i = 1; i <= n_dst; ++i) {
         args.push_back(boost::lexical_cast<std::string>(read_fd + i));
     }
-    return args;
+    return Process::create(str(format("__fdtee_%1%") % nodes_.size()), args);
 }

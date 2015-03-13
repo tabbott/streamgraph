@@ -31,7 +31,7 @@ TEST(Process, remapFd_close_on_exec) {
     SYSCALL_RETRY_VAR(flags, fcntl(out_fd, F_GETFL, 0));
     EXPECT_TRUE(flags & FD_CLOEXEC);
 
-    auto proc = Process::create(VS{"bash", "-ec", "echo hello 1>&3"});
+    auto proc = Process::create("test", VS{"bash", "-ec", "echo hello 1>&3"});
 
     proc->fd_map().add_existing_fd(3, out_fd);
 
@@ -46,7 +46,7 @@ TEST(Process, remapFd_close_on_exec) {
 
 // make sure that even when close on exec is set, we still get our fds
 TEST(Process, exit_failure) {
-    auto proc = Process::create(VS{"bash", "-ec", "exit 7"});
+    auto proc = Process::create("test", VS{"bash", "-ec", "exit 7"});
     ASSERT_GT(proc->start(), 0);
     EXPECT_FALSE(proc->finish());
     EXPECT_THROW(proc->set_result(proc->result()), std::runtime_error);
@@ -54,7 +54,7 @@ TEST(Process, exit_failure) {
 }
 
 TEST(Process, set_result) {
-    auto proc = Process::create(VS{"bash", "-ec", "exit 1"});
+    auto proc = Process::create("test", VS{"bash", "-ec", "exit 1"});
 
     EXPECT_EQ(eNEW, proc->state());
 

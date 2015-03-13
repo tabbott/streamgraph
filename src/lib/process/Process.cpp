@@ -14,14 +14,15 @@
 
 using boost::format;
 
-Process::Ptr Process::create(std::vector<std::string> const& args) {
-    return boost::shared_ptr<Process>(new Process(args));
+Process::Ptr Process::create(std::string const& name, std::vector<std::string> const& args) {
+    return boost::shared_ptr<Process>(new Process(name, args));
 }
 
-Process::Process(std::vector<std::string> const& args)
-    : pid_(0)
-    , state_(eNEW)
+Process::Process(std::string const& name, std::vector<std::string> const& args)
+    : name_(name)
     , args_(args)
+    , pid_(0)
+    , state_(eNEW)
 {}
 
 pid_t Process::start() {
@@ -80,8 +81,8 @@ bool Process::finish() {
     pid_t caught;
     SYSCALL_RETRY_VAR(caught, wait4(pid_, &result_.status, 0, &result_.rsrc));
 
-    LOG(INFO) << "Reaped process " << caught << " (" << args_string()
-        << "), status: " << result_.status << "\n";
+    LOG(INFO) << "Reaped process " << caught << " " << name() << " ("
+        << args_string() << "), status: " << result_.status << "\n";
 
     if (caught != pid_)
         return false;

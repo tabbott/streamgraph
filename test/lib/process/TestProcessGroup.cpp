@@ -20,7 +20,7 @@ TEST(ProcessGroup, run) {
         std::stringstream cmd;
         cmd << "echo " << i << " > " << tmpdir->path() << "/" << i << ".txt";
 
-        auto proc = Process::create(VS{"bash", "-ec", cmd.str()});
+        auto proc = Process::create("test", VS{"bash", "-ec", cmd.str()});
         pgroup.add(proc);
     }
 
@@ -54,7 +54,7 @@ TEST(ProcessGroup, signal_all) {
         std::stringstream cmd;
         cmd << "echo " << i << " > " << tmpdir->path() << "/" << i << ".txt";
 
-        auto proc = Process::create(VS{"bash", "-ec", "sleep 10"});
+        auto proc = Process::create("test", VS{"bash", "-ec", "sleep 10"});
         pgroup.add(proc);
     }
 

@@ -114,7 +114,7 @@ void GraphXml::parse_command(rapidxml::xml_node<>* cmd) {
             ) % name));
     }
 
-    ProcessGraph::NodeId id = graph_.add(string_args);
+    ProcessGraph::NodeId id = graph_.add(name, string_args);
     inserted.first->second = id;
 }
 

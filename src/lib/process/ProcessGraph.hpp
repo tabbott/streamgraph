@@ -54,7 +54,7 @@ public: // functions
     }
 
     NodeId add(Process::Ptr const& proc);
-    NodeId add(std::vector<std::string> const& args);
+    NodeId add(std::string const& name, std::vector<std::string> const& args);
     NodeId size() const;
     Process::Ptr& process(NodeId id);
     Process::Ptr const& process(NodeId id) const;
@@ -67,7 +67,7 @@ public: // functions
 
 private:
     void create_pipe(int rwpipe[2]);
-    std::vector<std::string> make_fdtee_cmd(int read_fd, std::size_t n_dst) const;
+    Process::Ptr make_fdtee_cmd(int read_fd, std::size_t n_dst) const;
 
 private: // data
     NodeList nodes_;
