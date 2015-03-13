@@ -6,11 +6,13 @@ set(LIB_SOURCES
     FdMapping.hpp
     FdSource.cpp
     FdSource.hpp
+    FdTee.cpp
+    FdTee.hpp
     Syscall.hpp
-    io.hpp
     TempFile.cpp
     TempFile.hpp
     TimeUtil.hpp
+    io.hpp
 )
 
 add_library(utility ${LIB_SOURCES})
