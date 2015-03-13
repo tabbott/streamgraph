@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<streamgraph name="qc time lol">
+    <command name="bam">
+        <args>
+            <arg>samtools</arg>
+            <arg>view</arg>
+            <arg>-u</arg>
+            <arg>-</arg> <!-- "-" for stdin -->
+        </args>
+    </command>
+    <command name="flagstat">
+        <args>
+            <arg>samtools</arg>
+            <arg>flagstat</arg>
+            <arg>-</arg>
+        </args>
+    </command>
+
+    <command name="calmd">
+        <args>
+            <arg>samtools</arg>
+            <arg>calmd</arg>
+            <arg>-b</arg>
+            <arg>-</arg>
+            <arg>ref.fa</arg>
+        </args>
+    </command>
+
+    <!-- connect input bam to samtools view -u on stdin -->
+    <connect_input_file source="input.bam" target="bam" target_fd="stdin"/>
+
+    <!-- connect uncompressed bam stream output to flagstat / calmd -->
+    <connect source="bam" source_fd="stdout" target="flagstat" target_fd="stdin"/>
+    <connect source="bam" source_fd="stdout" target="calmd" target_fd="stdin"/>
+
+    <!-- flagstat stdout/stderr files -->
+    <connect_output_file source="flagstat" source_fd="stdout" target="flagstat.txt"/>
+    <connect_output_file source="flagstat" source_fd="stderr" target="flagstat.log"/>
+
+    <!-- calmd stdout/stderr files -->
+    <connect_output_file source="calmd" source_fd="stdout" target="calmd.bam"/>
+    <connect_output_file source="calmd" source_fd="stderr" target="calmd.log"/>
+</streamgraph>
+
