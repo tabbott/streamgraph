@@ -106,7 +106,7 @@ void ProcessGraph::create_pipe(int rwpipe[2]) {
 bool ProcessGraph::execute() {
     std::vector<FdSpec> broadcasters;
 
-    for (OutPipeMap::const_iterator iter = pipes_.begin(); iter != pipes_.end(); ++iter) {
+    for (auto iter = pipes_.begin(); iter != pipes_.end(); ++iter) {
         FdSpecSet const& destinations = iter->second;
         if (destinations.size() > 1) {
             broadcasters.push_back(iter->first);
@@ -121,13 +121,13 @@ bool ProcessGraph::execute() {
         pipes_.erase(iter);
         connect(src.node_id, src.fd, tee_id, 3);
         int tee_fd = 4;
-        for (FdSpecSet::const_iterator dst_iter = dst_copy.begin(); dst_iter != dst_copy.end(); ++dst_iter) {
+        for (auto dst_iter = dst_copy.begin(); dst_iter != dst_copy.end(); ++dst_iter) {
             in_pipes_.erase(*dst_iter);
             connect(tee_id, tee_fd++, dst_iter->node_id, dst_iter->fd);
         }
     }
 
-    for (OutPipeMap::const_iterator siter = pipes_.begin(); siter != pipes_.end(); ++siter) {
+    for (auto siter = pipes_.begin(); siter != pipes_.end(); ++siter) {
         int rwpipe[2];
         create_pipe(rwpipe);
 
