@@ -39,7 +39,7 @@ public:
 
 
     void add(int target_fd, FdSourceBasePtr const& source) {
-        std::pair<MapType::iterator, bool> inserted = mapping_.insert(
+        auto inserted = mapping_.insert(
             std::make_pair(target_fd, source)
             );
 
@@ -56,7 +56,7 @@ public:
 
     void apply_naive_and_wasteful() const {
         FdMapType fd_map;
-        for (MapType::const_iterator iter = mapping_.begin(); iter != mapping_.end(); ++iter) {
+        for (auto iter = mapping_.begin(); iter != mapping_.end(); ++iter) {
             int old_fd = iter->second->get_fd();
             int new_fd = -1;
             SYSCALL_RETRY_VAR(new_fd, dup(old_fd));
@@ -67,7 +67,7 @@ public:
             LOG(INFO) << "temporary dup(" << old_fd << ") -> " << new_fd;
         }
 
-        for (FdMapType::const_iterator iter = fd_map.begin(); iter != fd_map.end(); ++iter) {
+        for (auto iter = fd_map.begin(); iter != fd_map.end(); ++iter) {
             int status;
             SYSCALL_RETRY_VAR(status, dup2(iter->second, iter->first));
             PCHECK(status >= 0) << "dup2(" << iter->second << ", " << iter->first

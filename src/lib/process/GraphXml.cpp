@@ -105,8 +105,7 @@ void GraphXml::parse_command(rapidxml::xml_node<>* cmd) {
                 ) % name));
     }
 
-    std::pair<NameToId::iterator, bool> inserted = name_to_id_.insert(
-        std::make_pair(name, 0));
+    auto inserted = name_to_id_.insert(std::make_pair(name, 0));
 
     if (!inserted.second) {
         throw std::runtime_error(str(format(

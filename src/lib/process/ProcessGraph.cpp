@@ -58,7 +58,7 @@ void ProcessGraph::connect(NodeId src, int src_fd, NodeId dst, int dst_fd) {
     validate_node(dst);
     FdSpec a = {src, src_fd};
     FdSpec b = {dst, dst_fd};
-    std::pair<InPipeMap::iterator, bool> inserted = in_pipes_.insert(std::make_pair(b, a));
+    auto inserted = in_pipes_.insert(std::make_pair(b, a));
     if (!inserted.second) {
         if (inserted.first->second != a) {
             LOG(ERROR) << "Attempted to connect multiple streams to process "
