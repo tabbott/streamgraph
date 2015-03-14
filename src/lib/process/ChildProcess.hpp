@@ -35,7 +35,7 @@ public:
     bool finish();
 
     pid_t pid() const               { return pid_; }
-    ChildProcessState state() const   { return state_; }
+    ChildProcessState state() const { return state_; }
     int raw_status() const          { return result_.status; }
     rusage resource_usage() const   { return result_.rsrc; }
     FdMapping& fd_map()             { return fd_map_; }
