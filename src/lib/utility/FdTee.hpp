@@ -2,4 +2,11 @@
 
 #include <vector>
 
-int fdtee(int src_fd, std::vector<int> const& dst_fds);
+struct FdTee {
+    FdTee(int src_fd, std::vector<int> dst_fds);
+
+    void operator()() const;
+
+    int src_fd;
+    std::vector<int> dst_fds;
+};

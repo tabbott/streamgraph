@@ -22,5 +22,6 @@ void FdTeeCommand::configureOptions() {
 }
 
 void FdTeeCommand::exec() {
-    std::exit(fdtee(in_fd_, out_fds_));
+    FdTee fdtee(in_fd_, out_fds_);
+    fdtee();
 }

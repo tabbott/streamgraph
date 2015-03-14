@@ -36,8 +36,6 @@ void RunGraphCommand::exec() {
 
     GraphXml xml(input_xml_path_);
     ProcessGraph& pg = xml.graph();
-    std::vector<std::string> fdtee_path{executable_name(), "fdtee"};
-    pg.set_fdtee_cmd(fdtee_path);
 
     bool rv = pg.execute();
     std::cerr << "execute ok: " << std::boolalpha << rv << "\n";
