@@ -9,8 +9,6 @@ set(LIB_SOURCES
     ExecWrapper.hpp
     GraphXml.cpp
     GraphXml.hpp
-    Process.cpp
-    Process.hpp
     ProcessGraph.cpp
     ProcessGraph.hpp
     ProcessGroup.cpp
