@@ -14,7 +14,6 @@ set(LIB_SOURCES
     ProcessGroup.cpp
     ProcessGroup.hpp
     ProcessResult.hpp
-    ProcessXml.hpp
     StatusXml.cpp
     StatusXml.hpp
 )
