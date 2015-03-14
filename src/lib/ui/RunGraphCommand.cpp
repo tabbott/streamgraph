@@ -53,7 +53,6 @@ void RunGraphCommand::exec() {
             auto const& p = pg.process(i);
             ss << "\t" << p->raw_status()
                 << "\t" << p->name()
-                << "\t" << p->args_string()
                 << "\n";
         }
 

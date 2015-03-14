@@ -1,7 +1,7 @@
 #pragma once
 
-#include "process/Process.hpp"
-#include "process/ProcessResult.hpp"
+#include "process/ChildProcess.hpp"
+#include "process/ChildProcessResult.hpp"
 
 #include <boost/unordered_map.hpp>
 
@@ -11,18 +11,18 @@ class ProcessGroup {
 public:
     ProcessGroup();
 
-    void add(Process::Ptr const& proc);
+    void add(ChildProcess::Ptr const& proc);
 
     void start();
     bool finish();
 
     void signal_all(int signum);
 
-    std::vector<Process::Ptr> const& processes() const {
+    std::vector<ChildProcess::Ptr> const& processes() const {
         return procs_;
     }
 
-    std::vector<ProcessResult> const& results() const {
+    std::vector<ChildProcessResult> const& results() const {
         return results_;
     }
 
@@ -30,7 +30,7 @@ private:
     typedef boost::unordered_map<pid_t, std::size_t> PidMap;
 
     bool started_;
-    std::vector<Process::Ptr> procs_;
-    std::vector<ProcessResult> results_;
+    std::vector<ChildProcess::Ptr> procs_;
+    std::vector<ChildProcessResult> results_;
     PidMap pidmap_;
 };

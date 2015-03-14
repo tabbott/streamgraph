@@ -1,0 +1,5 @@
+#pragma once
+
+namespace TestConfig {
+    static char const* CMAKE_EXE_PATH = "@CMAKE_COMMAND@";
+}

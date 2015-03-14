@@ -1,6 +1,6 @@
 #pragma once
 
-#include "process/Process.hpp"
+#include "process/ChildProcess.hpp"
 #include "process/ProcessGroup.hpp"
 
 #include <glog/logging.h>
@@ -18,7 +18,7 @@
 
 class ProcessGraph {
 public: // types
-    typedef std::vector<Process::Ptr> NodeList;
+    typedef std::vector<ChildProcess::Ptr> NodeList;
     typedef NodeList::size_type NodeId;
 
     struct FdSpec {
@@ -53,11 +53,11 @@ public: // functions
         fdtee_cmd_.swap(cmd);
     }
 
-    NodeId add(Process::Ptr const& proc);
+    NodeId add(ChildProcess::Ptr const& proc);
     NodeId add(std::string const& name, std::vector<std::string> const& args);
     NodeId size() const;
-    Process::Ptr& process(NodeId id);
-    Process::Ptr const& process(NodeId id) const;
+    ChildProcess::Ptr& process(NodeId id);
+    ChildProcess::Ptr const& process(NodeId id) const;
     void validate_node(NodeId id) const;
     void connect(NodeId src, int src_fd, NodeId dst, int dst_fd);
     void connect_input_file(std::string const& src, NodeId dst, int dst_fd);
@@ -69,7 +69,7 @@ public: // functions
 
 private:
     void create_pipe(int rwpipe[2]);
-    Process::Ptr make_fdtee_cmd(int read_fd, std::size_t n_dst) const;
+    ChildProcess::Ptr make_fdtee_cmd(int read_fd, std::size_t n_dst) const;
 
 private: // data
     NodeList nodes_;

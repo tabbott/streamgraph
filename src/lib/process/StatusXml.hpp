@@ -1,6 +1,6 @@
 #pragma once
 
-#include "process/Process.hpp"
+#include "process/ChildProcess.hpp"
 
 #include <rapidxml.hpp>
 
@@ -11,12 +11,12 @@
 
 class StatusXml {
 public:
-    explicit StatusXml(std::vector<Process::Ptr> const& processes);
+    explicit StatusXml(std::vector<ChildProcess::Ptr> const& processes);
 
     void write(std::string const& path) const;
 
 private:
-    void add_process(Process::Ptr const& proc);
+    void add_process(ChildProcess::Ptr const& proc);
     rapidxml::xml_node<>* resource_node(rusage const& rsrc);
 
     template<typename T>

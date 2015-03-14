@@ -2,9 +2,16 @@
 #include "utility/TempFile.hpp"
 #include "utility/io.hpp"
 
+#include "ProcessIoHelpers.hpp"
+
+#include <boost/lexical_cast.hpp>
+#include <boost/filesystem/path.hpp>
+
 #include <gtest/gtest.h>
 
 #include <sstream>
+
+namespace bfs = boost::filesystem;
 
 namespace {
     typedef std::vector<std::string> VS;
@@ -17,10 +24,12 @@ TEST(ProcessGroup, run) {
     ProcessGroup pgroup;
 
     for (unsigned i = 0; i < nprocs; ++i) {
-        std::stringstream cmd;
-        cmd << "echo " << i << " > " << tmpdir->path() << "/" << i << ".txt";
+        bfs::path path(tmpdir->path());
+        path /= boost::lexical_cast<std::string>(i) + ".txt";
 
-        auto proc = Process::create("test", VS{"bash", "-ec", cmd.str()});
+        FdWriter writer(1, path.string());
+        auto proc = ChildProcess::create("test", writer);
+        proc->fd_map().add_file(1, path.string(), O_WRONLY|O_CREAT, 0644);
         pgroup.add(proc);
     }
 
@@ -29,12 +38,10 @@ TEST(ProcessGroup, run) {
     EXPECT_TRUE(pgroup.finish());
 
     for (unsigned i = 0; i < nprocs; ++i) {
-        std::stringstream path;
-        path << tmpdir->path() << "/" << i << ".txt";
-        std::stringstream expected;
-        expected << i << "\n";
+        bfs::path path(tmpdir->path());
+        path /= boost::lexical_cast<std::string>(i) + ".txt";
 
-        EXPECT_EQ(expected.str(), io::read_file(path.str()));
+        EXPECT_EQ(path.string(), io::read_file(path.string()));
 
         auto const& proc = pgroup.processes()[i];
         EXPECT_TRUE(proc->succeeded());
@@ -51,10 +58,8 @@ TEST(ProcessGroup, signal_all) {
     ProcessGroup pgroup;
 
     for (unsigned i = 0; i < nprocs; ++i) {
-        std::stringstream cmd;
-        cmd << "echo " << i << " > " << tmpdir->path() << "/" << i << ".txt";
-
-        auto proc = Process::create("test", VS{"bash", "-ec", "sleep 10"});
+        Sleeper sleepy(10);
+        auto proc = ChildProcess::create("test", sleepy);
         pgroup.add(proc);
     }
 

@@ -11,7 +11,7 @@
 using boost::format;
 using namespace rapidxml;
 
-StatusXml::StatusXml(std::vector<Process::Ptr> const& processes)
+StatusXml::StatusXml(std::vector<ChildProcess::Ptr> const& processes)
     : root_(doc_.allocate_node(node_element, "streamgraph_status"))
 {
     doc_.append_node(root_);
@@ -31,7 +31,7 @@ void StatusXml::write(std::string const& path) const {
     out << doc_;
 }
 
-void StatusXml::add_process(Process::Ptr const& proc) {
+void StatusXml::add_process(ChildProcess::Ptr const& proc) {
     auto proc_node = doc_.allocate_node(node_element, "process");
     proc_node->append_attribute(create_attr("name", proc->name()));
     proc_node->append_node(create_value_node("status", proc->raw_status()));

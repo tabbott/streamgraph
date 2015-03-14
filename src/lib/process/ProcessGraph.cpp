@@ -1,6 +1,6 @@
-#include "ProcessGraph.hpp"
-
-#include "process/Process.hpp"
+#include "process/ProcessGraph.hpp"
+#include "process/ChildProcess.hpp"
+#include "process/ExecWrapper.hpp"
 #include "process/ProcessGroup.hpp"
 
 #include <glog/logging.h>
@@ -22,26 +22,27 @@ ProcessGraph::ProcessGraph(std::vector<std::string> fdtee_cmd)
     : fdtee_cmd_(fdtee_cmd)
 {}
 
-ProcessGraph::NodeId ProcessGraph::add(Process::Ptr const& proc) {
+ProcessGraph::NodeId ProcessGraph::add(ChildProcess::Ptr const& proc) {
     pgroup_.add(proc);
     nodes_.push_back(proc);
     return nodes_.size() - 1;
 }
 
 ProcessGraph::NodeId ProcessGraph::add(std::string const& name, std::vector<std::string> const& args) {
-    return add(Process::create(name, args));
+    ExecWrapper wrapper(args);
+    return add(ChildProcess::create(name, wrapper));
 }
 
 ProcessGraph::NodeId ProcessGraph::size() const {
     return nodes_.size();
 }
 
-Process::Ptr& ProcessGraph::process(NodeId id) {
+ChildProcess::Ptr& ProcessGraph::process(NodeId id) {
     validate_node(id);
     return nodes_[id];
 }
 
-Process::Ptr const& ProcessGraph::process(NodeId id) const {
+ChildProcess::Ptr const& ProcessGraph::process(NodeId id) const {
     validate_node(id);
     return nodes_[id];
 }
@@ -64,7 +65,7 @@ void ProcessGraph::connect(NodeId src, int src_fd, NodeId dst, int dst_fd) {
     if (!inserted.second) {
         if (inserted.first->second != a) {
             LOG(ERROR) << "Attempted to connect multiple streams to process "
-                << dst << " fd " << dst_fd << " (" << process(dst)->args_string() << ")";
+                << dst << " fd " << dst_fd << " (" << process(dst)->name() << ")";
             throw std::runtime_error(str(format(
                 "Attempted to connect multiple streams to target (proc %1% fd %2%)"
                 ) % dst % dst_fd));
@@ -141,8 +142,8 @@ bool ProcessGraph::execute() {
         std::size_t n_dst = destinations.size();
         if (n_dst == 1) {
             FdSpec const& dst = *destinations.begin();
-            Process::Ptr& src_proc = process(src.node_id);
-            Process::Ptr& dst_proc = process(dst.node_id);
+            ChildProcess::Ptr& src_proc = process(src.node_id);
+            ChildProcess::Ptr& dst_proc = process(dst.node_id);
             src_proc->fd_map().add_existing_fd(src.fd, rwpipe[1]);
             dst_proc->fd_map().add_existing_fd(dst.fd, rwpipe[0]);
 
@@ -163,13 +164,14 @@ bool ProcessGraph::execute() {
     return pgroup_.finish();
 }
 
-Process::Ptr ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) const {
+ChildProcess::Ptr ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) const {
     std::vector<std::string> args = fdtee_cmd_;
     args.push_back(boost::lexical_cast<std::string>(read_fd));
     for (std::size_t i = 1; i <= n_dst; ++i) {
         args.push_back(boost::lexical_cast<std::string>(read_fd + i));
     }
-    return Process::create(str(format("__fdtee_%1%") % nodes_.size()), args);
+    ExecWrapper wrapper(args);
+    return ChildProcess::create(str(format("__fdtee_%1%") % nodes_.size()), wrapper);
 }
 
 ProcessGraph::NodeList ProcessGraph::processes() const {

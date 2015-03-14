@@ -4,6 +4,8 @@ project(streamgraph)
 
 include(ExternalProject)
 
+configure_file(test/TestConfig.hpp.in test/TestConfig.hpp @ONLY)
+include_directories(${PROJECT_BINARY_DIR}/test)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 

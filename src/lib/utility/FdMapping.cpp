@@ -60,9 +60,9 @@ public:
             int old_fd = iter->second->get_fd();
             int new_fd = -1;
             SYSCALL_RETRY_VAR(new_fd, dup(old_fd));
+            // PCHECK will exit with a fatal error if the condition is not met
             PCHECK(new_fd >= 0) << "failed to dup fd " << old_fd;
 
-            // FIXME new_fd = -1 && die???
             fd_map[iter->first] = new_fd;
             LOG(INFO) << "temporary dup(" << old_fd << ") -> " << new_fd;
         }

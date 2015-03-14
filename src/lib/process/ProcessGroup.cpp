@@ -16,7 +16,7 @@ ProcessGroup::ProcessGroup()
     : started_(false)
 {}
 
-void ProcessGroup::add(Process::Ptr const& proc) {
+void ProcessGroup::add(ChildProcess::Ptr const& proc) {
     procs_.push_back(proc);
 }
 
@@ -36,7 +36,7 @@ void ProcessGroup::start() {
 bool ProcessGroup::finish() {
     std::size_t n = procs_.size();
 
-    ProcessResult result;
+    ChildProcessResult result;
     std::size_t n_caught = 0;
     bool rv = true;
     while (n_caught < n) {
@@ -55,7 +55,7 @@ bool ProcessGroup::finish() {
         ++n_caught;
 
         std::size_t idx = found->second;
-        LOG(INFO) << "Reaped child " << result.pid << " (" << procs_[idx]->args_string()
+        LOG(INFO) << "Reaped child " << result.pid << " (" << procs_[idx]->name()
             << "), status = " << result.status;
 
         procs_[idx]->set_result(result);
@@ -69,7 +69,7 @@ bool ProcessGroup::finish() {
 void ProcessGroup::signal_all(int signum) {
     std::size_t n = procs_.size();
     for (std::size_t i = 0; i < n; ++i) {
-        Process& p = *procs_[i];
+        ChildProcess& p = *procs_[i];
         if (p.state() == eRUNNING)
             kill(p.pid(), signum);
     }
