@@ -80,7 +80,7 @@ TEST_P(TestProcessGroupSignals, signal_all) {
 
 // All signals that terminate the process by default (excluding those that
 // may produce a core)
-INSTANTIATE_TEST_CASE_P(ProcessGroupSignals, TestProcessGroupSignals,
+INSTANTIATE_TEST_CASE_P(ProcessGroup, TestProcessGroupSignals,
         ::testing::Values(
             SIGHUP, SIGINT, SIGKILL, SIGPIPE, SIGALRM,
             SIGTERM, SIGUSR1, SIGUSR2));
