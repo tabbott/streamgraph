@@ -11,6 +11,8 @@
 
 #include <sstream>
 
+#include <signal.h>
+
 namespace bfs = boost::filesystem;
 
 namespace {
@@ -49,12 +51,13 @@ TEST(ProcessGroup, run) {
     }
 }
 
-TEST(ProcessGroup, signal_all) {
+class TestProcessGroupSignals : public ::testing::TestWithParam<int> {
+};
+
+TEST_P(TestProcessGroupSignals, signal_all) {
     unsigned nprocs = 10;
-    int signum = 2;
 
-    auto tmpdir = TempDir::create(TempDir::CLEANUP);
-
+    int sig = GetParam();
     ProcessGroup pgroup;
 
     for (unsigned i = 0; i < nprocs; ++i) {
@@ -65,12 +68,19 @@ TEST(ProcessGroup, signal_all) {
 
     EXPECT_EQ(nprocs, pgroup.processes().size());
     pgroup.start();
-    pgroup.signal_all(signum);
+    pgroup.signal_all(sig);
     EXPECT_FALSE(pgroup.finish());
 
     for (unsigned i = 0; i < nprocs; ++i) {
         auto const& proc = pgroup.processes()[i];
         EXPECT_FALSE(proc->succeeded());
-        EXPECT_EQ(signum, proc->exit_signal());
+        EXPECT_EQ(sig, proc->exit_signal());
     }
 }
+
+// All signals that terminate the process by default (excluding those that
+// may produce a core)
+INSTANTIATE_TEST_CASE_P(ProcessGroupSignals, TestProcessGroupSignals,
+        ::testing::Values(
+            SIGHUP, SIGINT, SIGKILL, SIGPIPE, SIGALRM,
+            SIGTERM, SIGUSR1, SIGUSR2));
