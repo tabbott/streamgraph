@@ -16,4 +16,5 @@ public:
 private:
     std::string input_xml_path_;
     std::string output_xml_path_;
+    std::string output_dot_path_;
 };

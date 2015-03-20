@@ -21,6 +21,10 @@ void RunGraphCommand::configureOptions() {
         ("output-xml,o",
             po::value<>(&output_xml_path_)->required(),
             "output .xml file containing process status information")
+
+        ("output-dot,d",
+            po::value<>(&output_dot_path_),
+            "output .dot file displaying graph structure")
         ;
 
     pos_opts_.add("input-xml", 1);
@@ -36,6 +40,9 @@ void RunGraphCommand::exec() {
 
     GraphXml xml(input_xml_path_);
     ProcessGraph& pg = xml.graph();
+    if (!output_dot_path_.empty()) {
+        pg.write_basic_dot(output_dot_path_);
+    }
 
     bool rv = pg.execute();
     std::cerr << "execute ok: " << std::boolalpha << rv << "\n";

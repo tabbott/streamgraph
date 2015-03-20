@@ -61,15 +61,17 @@ public: // functions
 
     NodeList processes() const;
 
+    void write_basic_dot(std::string const& path) const;
+
 private:
     void create_pipe(int rwpipe[2]);
     ChildProcess::Ptr make_fdtee_cmd(int read_fd, std::size_t n_dst) const;
+    void expand_fanout();
 
 private: // data
     NodeList nodes_;
     ProcessGroup pgroup_;
 
-    std::vector<int> pipe_fds_;
     OutPipeMap pipes_;
     InPipeMap in_pipes_;
 };

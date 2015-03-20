@@ -12,8 +12,10 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 
+#include <algorithm>
+#include <cassert>
+#include <fstream>
 #include <stdexcept>
-
 #include <string>
 #include <vector>
 
@@ -103,7 +105,7 @@ void ProcessGraph::create_pipe(int rwpipe[2]) {
         << rwpipe[0] << ", " << rwpipe[1] << ")";
 }
 
-bool ProcessGraph::execute() {
+void ProcessGraph::expand_fanout() {
     std::vector<FdSpec> broadcasters;
 
     for (auto iter = pipes_.begin(); iter != pipes_.end(); ++iter) {
@@ -126,38 +128,38 @@ bool ProcessGraph::execute() {
             connect(tee_id, tee_fd++, dst_iter->node_id, dst_iter->fd);
         }
     }
+}
 
-    for (auto siter = pipes_.begin(); siter != pipes_.end(); ++siter) {
+bool ProcessGraph::execute() {
+    expand_fanout();
+
+    std::vector<int> pipe_fds;
+
+    for (auto iter = pipes_.begin(); iter != pipes_.end(); ++iter) {
         int rwpipe[2];
         create_pipe(rwpipe);
 
-        pipe_fds_.push_back(rwpipe[0]);
-        pipe_fds_.push_back(rwpipe[1]);
+        pipe_fds.push_back(rwpipe[0]);
+        pipe_fds.push_back(rwpipe[1]);
 
-        FdSpec const& src = siter->first;
-        FdSpecSet const& destinations = siter->second;
-        std::size_t n_dst = destinations.size();
-        if (n_dst == 1) {
-            FdSpec const& dst = *destinations.begin();
-            ChildProcess::Ptr& src_proc = process(src.node_id);
-            ChildProcess::Ptr& dst_proc = process(dst.node_id);
-            src_proc->fd_map().add_existing_fd(src.fd, rwpipe[1]);
-            dst_proc->fd_map().add_existing_fd(dst.fd, rwpipe[0]);
+        FdSpec const& src = iter->first;
+        FdSpecSet const& destinations = iter->second;
 
-            LOG(INFO) << "piping (proc " << src.node_id << ", fd "
-                << src.fd << " -> (proc " << dst.node_id << ", fd "
-                << dst.fd  << ")";
-        }
-        else {
-            throw std::runtime_error("unsupported number of destinations");
-        }
+        // this should be guaranteed by calling flatten
+        assert(destinations.size() == 1);
+        FdSpec const& dst = *destinations.begin();
+        ChildProcess::Ptr& src_proc = process(src.node_id);
+        ChildProcess::Ptr& dst_proc = process(dst.node_id);
+        src_proc->fd_map().add_existing_fd(src.fd, rwpipe[1]);
+        dst_proc->fd_map().add_existing_fd(dst.fd, rwpipe[0]);
+
+        LOG(INFO) << "piping (proc " << src.node_id << ", fd "
+            << src.fd << " -> (proc " << dst.node_id << ", fd "
+            << dst.fd  << ")";
     }
 
     pgroup_.start();
-    for (std::size_t i = 0; i < pipe_fds_.size(); ++i) {
-        close(pipe_fds_[i]);
-    }
-
+    std::for_each(pipe_fds.begin(), pipe_fds.end(), &close);
     return pgroup_.finish();
 }
 
@@ -172,4 +174,35 @@ ChildProcess::Ptr ProcessGraph::make_fdtee_cmd(int read_fd, std::size_t n_dst) c
 
 ProcessGraph::NodeList ProcessGraph::processes() const {
     return nodes_;
+}
+
+// FIXME: we should probably look at using boost graph to do this and a few
+// other things in this module
+void ProcessGraph::write_basic_dot(std::string const& path) const {
+    std::ofstream out(path);
+    if (!out) {
+        throw std::runtime_error(str(format(
+            "Failed to open output dot file %1%"
+            ) % path));
+    }
+
+    out << "digraph G {\n";
+    out << "\trankdir=LR;\n";
+
+    std::size_t n = nodes_.size();
+    for (std::size_t i = 0; i < n; ++i) {
+        auto const& proc = *nodes_[i];
+        out << "\t" << i << " [label=\"" << proc.name() << "\"];\n";
+    }
+
+    for (auto iter = pipes_.begin(); iter != pipes_.end(); ++iter) {
+        FdSpec const& src = iter->first;
+        FdSpecSet const& dsts = iter->second;
+
+        for (auto tgt = dsts.begin(); tgt != dsts.end(); ++tgt) {
+            out << "\t" << src.node_id << " -> " << tgt->node_id << ";\n";
+        }
+    }
+
+    out << "}\n";
 }
