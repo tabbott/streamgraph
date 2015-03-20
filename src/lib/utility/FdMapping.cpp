@@ -72,8 +72,6 @@ public:
             SYSCALL_RETRY_VAR(status, dup2(iter->second, iter->first));
             PCHECK(status >= 0) << "dup2(" << iter->second << ", " << iter->first
                 << ") failed";
-            LOG(INFO) << "final dup2(" << iter->second << ", " <<  iter->first
-                << ") -> " << status;
         }
 
         int nfds = getdtablesize();
@@ -81,7 +79,6 @@ public:
             if (!mapping_.count(i)) {
                 int status;
                 SYSCALL_RETRY_VAR(status, close(i));
-                LOG_IF(INFO, status == 0) << "closed unused fd " << i;
             }
         }
     }
