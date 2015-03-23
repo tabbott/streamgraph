@@ -35,7 +35,6 @@ set(CPACK_DEBIAN_PACKAGE_REPLACES "")
 # looks like (aside from standard c/c++ stuff) the only dep might be
 # liblzma.
 # NOT SURE ABOUT MIN VERSIONS YET
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
 
 configure_file(cpack/postinst.in cpack/postinst @ONLY)
 configure_file(cpack/prerm.in cpack/prerm @ONLY)
