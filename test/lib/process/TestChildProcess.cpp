@@ -23,7 +23,9 @@
 namespace {
     typedef std::vector<std::string> VS;
 
-    void forgot_to_call_exit() {}
+    struct ForgotToCallExit : IoHelperBase {
+        void operator()() {}
+    };
 }
 
 // make sure that even when close on exec is set, we still get our fds
@@ -66,7 +68,8 @@ TEST(ChildProcess, exit_failure) {
 // make sure that when a caller forgets to call exit in their work
 // function, exit(1) is called by default
 TEST(ChildProcess, forgot_exit) {
-    auto proc = ChildProcess::create("test", forgot_to_call_exit);
+    ForgotToCallExit obj;
+    auto proc = ChildProcess::create("test", obj);
     ASSERT_GT(proc->start(), 0);
     EXPECT_FALSE(proc->finish());
     EXPECT_THROW(proc->set_result(proc->result()), std::runtime_error);

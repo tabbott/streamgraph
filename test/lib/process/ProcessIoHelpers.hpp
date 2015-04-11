@@ -7,8 +7,16 @@
 #include <unistd.h>
 
 namespace {
+    struct IoHelperBase {
+        std::vector<std::string> const& args() const {
+            return args_;
+        };
+        std::vector<std::string> args_;
+    };
+
+
     // no lambdas allowed in gcc 4.4 :(
-    struct FdWriter {
+    struct FdWriter : IoHelperBase {
         FdWriter(int fd, std::string const& message)
             : fd(fd)
             , message(message)
@@ -26,7 +34,7 @@ namespace {
         std::string message;
     };
 
-    struct ExitBot {
+    struct ExitBot : IoHelperBase {
         explicit ExitBot(int status)
             : status(status)
         {}
@@ -38,7 +46,7 @@ namespace {
         int status;
     };
 
-    struct Sleeper {
+    struct Sleeper : IoHelperBase {
         explicit Sleeper(int seconds)
             : seconds(seconds)
         {}
