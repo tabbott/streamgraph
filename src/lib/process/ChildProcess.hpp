@@ -28,7 +28,7 @@ public:
 
     template<typename T>
     static Ptr create(std::string const& name, T const& function) {
-        return Ptr(new ChildProcess(name, ChildFunction(function)));
+        return Ptr(new ChildProcess(name, ChildFunction(function, function.args())));
     }
 
     pid_t start();
@@ -40,6 +40,10 @@ public:
     rusage resource_usage() const   { return result_.rsrc; }
     FdMapping& fd_map()             { return fd_map_; }
     std::string const& name() const { return name_; }
+
+    std::vector<std::string> const& args() const {
+        return function_.args();
+    }
 
     void set_result(ChildProcessResult const& status);
     ChildProcessResult const& result() const {

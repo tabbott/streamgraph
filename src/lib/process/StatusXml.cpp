@@ -31,8 +31,26 @@ void StatusXml::write(std::string const& path) const {
     out << doc_;
 }
 
+rapidxml::xml_node<>* StatusXml::create_args_node(ChildProcess::Ptr const& proc) {
+    auto const& args = proc->args();
+    if (args.empty())
+        return 0;
+
+    auto args_node = doc_.allocate_node(node_element, "args");
+    for (auto i = args.begin(); i != args.end(); ++i) {
+        auto arg = doc_.allocate_node(node_element, "arg",
+                doc_.allocate_string(i->c_str()));
+        args_node->append_node(arg);
+    }
+    return args_node;
+}
+
 void StatusXml::add_process(ChildProcess::Ptr const& proc) {
     auto proc_node = doc_.allocate_node(node_element, "process");
+    auto args_node = create_args_node(proc);
+    if (args_node)
+        proc_node->append_node(args_node);
+
     proc_node->append_attribute(create_attr("name", proc->name()));
     proc_node->append_node(create_value_node("status", proc->raw_status()));
     proc_node->append_node(resource_node(proc->resource_usage()));

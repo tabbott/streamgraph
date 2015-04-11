@@ -32,6 +32,8 @@ private:
         return node;
     }
 
+    rapidxml::xml_node<>* create_args_node(ChildProcess::Ptr const& proc);
+
 private:
     rapidxml::xml_document<> doc_;
     rapidxml::xml_node<>* root_;

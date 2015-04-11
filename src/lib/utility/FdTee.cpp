@@ -1,6 +1,8 @@
 #include "FdTee.hpp"
 #include "utility/io.hpp"
 
+#include <boost/lexical_cast.hpp>
+
 #include <cerrno>
 #include <utility>
 
@@ -34,11 +36,22 @@ namespace {
     }
 }
 
-FdTee::FdTee(int src_fd, std::vector<int> dst_fds)
+FdTee::FdTee(int src_fd, std::vector<int> dst_fds_)
     : src_fd(src_fd)
-    , dst_fds(std::move(dst_fds))
-{}
+    , dst_fds(std::move(dst_fds_))
+{
+    args_.reserve(dst_fds.size() + 2);
+    args_.push_back("$internal_fdtee$");
+    args_.push_back(boost::lexical_cast<std::string>(src_fd));
+    for (auto i = dst_fds.begin(); i != dst_fds.end(); ++i) {
+        args_.push_back(boost::lexical_cast<std::string>(*i));
+    }
+}
 
 void FdTee::operator()() const {
     std::exit(fdtee(src_fd, dst_fds));
+}
+
+std::vector<std::string> const& FdTee::args() const {
+    return args_;
 }
